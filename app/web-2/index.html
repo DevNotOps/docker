@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#10141c">
+    <meta name="description" content="A searchable, beginner-friendly guide to common Linux terminal commands.">
+    <title>Shellwise — Linux Command Guide</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        --bg: #10141c;
+        --surface: #171d27;
+        --surface-raised: #1d2531;
+        --border: #2a3442;
+        --muted: #9aa8b9;
+        --text: #edf2f7;
+        --accent: #83e0bd;
+        --accent-dark: #19382f;
+        --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        color: var(--text);
+        background:
+          radial-gradient(ellipse at 12% 0%, rgb(62 111 105 / 13%), transparent 32rem),
+          var(--bg);
+      }
+
+      button, input { font: inherit; }
+      button { color: inherit; }
+
+      .shell { width: min(1440px, 100% - 64px); margin: 0 auto; }
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 76px;
+        border-bottom: 1px solid rgb(255 255 255 / 7%);
+      }
+
+      .brand { display: flex; align-items: center; gap: 11px; font-size: 15px; font-weight: 720; letter-spacing: -.03em; }
+      .brand-mark {
+        display: grid;
+        width: 31px;
+        height: 31px;
+        place-items: center;
+        border: 1px solid rgb(131 224 189 / 35%);
+        border-radius: 9px;
+        color: var(--accent);
+        background: rgb(131 224 189 / 8%);
+        font-family: var(--mono);
+        font-size: 16px;
+      }
+
+      .header-note { color: var(--muted); font-size: 12px; }
+
+      .intro { padding: 48px 0 29px; }
+      .eyebrow {
+        margin: 0 0 12px;
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+      }
+      h1 { margin: 0; font-size: clamp(32px, 5vw, 48px); font-weight: 620; letter-spacing: -.055em; line-height: 1.12; }
+      .intro-copy { max-width: 620px; margin: 13px 0 0; color: var(--muted); font-size: 15px; line-height: 1.65; }
+
+      .toolbar { display: grid; grid-template-columns: minmax(230px, 420px) 1fr; align-items: center; gap: 20px; margin: 27px 0 18px; }
+      .search-wrap { position: relative; }
+      .search-icon { position: absolute; top: 50%; left: 14px; color: #8d9aab; transform: translateY(-50%); pointer-events: none; }
+      #search {
+        width: 100%;
+        height: 46px;
+        padding: 0 46px 0 42px;
+        border: 1px solid var(--border);
+        border-radius: 11px;
+        outline: none;
+        color: var(--text);
+        background: var(--surface);
+        transition: border-color .18s, box-shadow .18s;
+      }
+      #search::placeholder { color: #778495; }
+      #search:focus { border-color: #5da98c; box-shadow: 0 0 0 3px rgb(131 224 189 / 10%); }
+      .shortcut { position: absolute; top: 50%; right: 12px; color: #8491a2; font-family: var(--mono); font-size: 11px; transform: translateY(-50%); }
+
+      .filters { display: flex; gap: 7px; overflow-x: auto; padding: 2px 0; scrollbar-width: thin; }
+      .filter {
+        flex: 0 0 auto;
+        padding: 8px 11px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        color: #aab5c3;
+        background: transparent;
+        cursor: pointer;
+        font-size: 12px;
+        transition: .18s ease;
+      }
+      .filter:hover { color: var(--text); background: rgb(255 255 255 / 4%); }
+      .filter[aria-pressed="true"] { border-color: rgb(131 224 189 / 22%); color: var(--accent); background: var(--accent-dark); }
+
+      .results-meta { display: flex; justify-content: space-between; gap: 12px; margin: 0 0 12px; color: var(--muted); font-size: 12px; }
+      .workspace { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(320px, .7fr); align-items: start; gap: 16px; padding-bottom: 48px; }
+      .command-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .command-card {
+        min-width: 0;
+        min-height: 105px;
+        padding: 15px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        text-align: left;
+        background: var(--surface);
+        cursor: pointer;
+        transition: border-color .18s, background .18s, transform .18s;
+      }
+      .command-card:hover { border-color: #465466; background: var(--surface-raised); transform: translateY(-1px); }
+      .command-card[aria-pressed="true"] { border-color: rgb(131 224 189 / 60%); background: linear-gradient(140deg, rgb(131 224 189 / 9%), var(--surface) 65%); }
+      .card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+      .command-name { color: var(--accent); font-family: var(--mono); font-size: 14px; font-weight: 650; }
+      .category-label { color: #8d9aab; font-size: 10px; }
+      .card-description { display: block; margin-top: 10px; color: #b0bac7; font-size: 12px; line-height: 1.5; }
+
+      .detail {
+        position: sticky;
+        top: 16px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--surface);
+      }
+      .detail-head { padding: 20px 20px 17px; border-bottom: 1px solid var(--border); background: linear-gradient(120deg, rgb(131 224 189 / 5%), transparent 70%); }
+      .detail-kicker { margin: 0 0 9px; color: var(--muted); font-size: 11px; }
+      .detail-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+      .detail h2 { overflow-wrap: anywhere; margin: 0; color: var(--accent); font-family: var(--mono); font-size: 23px; font-weight: 600; }
+      .detail-description { margin: 12px 0 0; color: #c1cad5; font-size: 13px; line-height: 1.65; }
+      .detail-body { display: grid; gap: 18px; padding: 18px 20px 20px; }
+      .detail-section h3 { margin: 0 0 9px; color: #8f9cad; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+      .syntax, .example-code {
+        overflow-x: auto;
+        margin: 0;
+        padding: 12px;
+        border: 1px solid #293443;
+        border-radius: 8px;
+        color: #e2e8ef;
+        background: #111720;
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 1.6;
+        white-space: pre;
+      }
+      .example-code { color: #b6e8d4; }
+      .detail-note { margin: 0; color: #aeb9c7; font-size: 12px; line-height: 1.6; }
+      .detail-note.warning { color: #f0c77f; }
+      .copy-button {
+        flex: 0 0 auto;
+        padding: 7px 9px;
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        color: #bdc7d4;
+        background: #202936;
+        cursor: pointer;
+        font-size: 11px;
+      }
+      .copy-button:hover { border-color: #5b6b7c; color: white; }
+      .copy-button:focus-visible, .filter:focus-visible, .command-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+      .empty-state { grid-column: 1 / -1; padding: 42px 18px; border: 1px dashed #344151; border-radius: 12px; color: var(--muted); text-align: center; font-size: 13px; }
+      .empty-state strong { display: block; margin-bottom: 6px; color: var(--text); font-size: 15px; }
+      .footer { padding: 0 0 25px; color: #778495; font-size: 11px; line-height: 1.6; }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+      @media (max-width: 880px) {
+        .shell { width: min(100% - 40px, 680px); }
+        .toolbar { grid-template-columns: 1fr; gap: 12px; }
+        .workspace { grid-template-columns: 1fr; }
+        .detail { position: static; grid-row: 1; }
+      }
+      @media (max-width: 520px) {
+        .shell { width: calc(100% - 28px); }
+        header { min-height: 62px; }
+        .header-note { font-size: 10px; }
+        .intro { padding: 35px 0 19px; }
+        .intro-copy { font-size: 14px; }
+        .command-grid { grid-template-columns: 1fr; }
+        .command-card { min-height: 88px; }
+        .detail-head { padding: 17px; }
+        .detail-body { padding: 16px 17px 18px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="shell">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">&gt;_</span> shellwise</div>
+      <span class="header-note">A friendly guide to the Linux terminal</span>
+    </header>
+
+    <main class="shell">
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">Linux command guide</p>
+        <h1 id="page-title">The terminal, explained.</h1>
+        <p class="intro-copy">Look up common Linux commands, understand what they do, and see a practical example. Search by command, task, or description.</p>
+      </section>
+
+      <section aria-label="Browse commands">
+        <div class="toolbar">
+          <label class="search-wrap">
+            <span class="sr-only">Search commands</span>
+            <svg class="search-icon" aria-hidden="true" width="17" height="17" viewBox="0 0 20 20" fill="none">
+              <circle cx="8.7" cy="8.7" r="5.8" stroke="currentColor" stroke-width="1.6"></circle>
+              <path d="m13 13 4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+            </svg>
+            <input id="search" type="search" placeholder="Search commands or tasks..." autocomplete="off">
+            <span class="shortcut" aria-hidden="true">/</span>
+          </label>
+          <nav class="filters" id="filters" aria-label="Filter by category"></nav>
+        </div>
+        <div class="results-meta">
+          <span id="result-count" aria-live="polite"></span>
+          <span>Select a command to see details</span>
+        </div>
+        <div class="workspace">
+          <div class="command-grid" id="command-grid" aria-label="Linux commands"></div>
+          <aside class="detail" id="detail" aria-live="polite" aria-label="Command details"></aside>
+        </div>
+      </section>
+      <p class="footer">This guide covers commonly used commands, not every command available on every Linux distribution. Commands can behave differently depending on your system. Read a command before running it, especially when using elevated privileges or changing files.</p>
+    </main>
+
+    <script>
+      const commands = [
+        { name: "pwd", category: "Navigation", summary: "Print the path of your current directory.", syntax: "pwd", example: "$ pwd\n/home/sam/projects", explanation: "Stands for “print working directory.” It tells you exactly where you are in the filesystem.", note: "The result is an absolute path, starting from /." },
+        { name: "ls", category: "Navigation", summary: "List files and folders.", syntax: "ls [options] [path]", example: "$ ls -lah ~/Documents", explanation: "Shows the contents of a directory. With no path, it lists the current directory.", note: "-l shows details, -a includes hidden files, and -h makes file sizes easier to read." },
+        { name: "cd", category: "Navigation", summary: "Move to a different directory.", syntax: "cd [path]", example: "$ cd /var/log", explanation: "Changes your shell's current directory. Use cd .. to move up one level or cd ~ to go to your home directory.", note: "Run pwd afterward if you want to confirm your location." },
+        { name: "tree", category: "Navigation", summary: "Show folders as a directory tree.", syntax: "tree [path]", example: "$ tree -L 2 ~/projects", explanation: "Displays nested files and folders in a readable tree. It may need to be installed separately.", note: "-L limits how many directory levels are shown." },
+        { name: "mkdir", category: "Files", summary: "Create a directory.", syntax: "mkdir [options] directory", example: "$ mkdir -p projects/demo/assets", explanation: "Creates one or more directories. The -p option also creates missing parent directories and does not complain if they already exist.", note: "Choose a destination you can write to." },
+        { name: "touch", category: "Files", summary: "Create an empty file or update its timestamp.", syntax: "touch file", example: "$ touch notes.txt", explanation: "Creates an empty file if it does not exist. Otherwise, it updates the file's access and modification times.", note: "It does not erase the existing contents of a file." },
+        { name: "cp", category: "Files", summary: "Copy files or directories.", syntax: "cp [options] source destination", example: "$ cp report.txt report-backup.txt", explanation: "Copies a file to another path. Add -r to copy a directory and its contents.", note: "If the destination exists, its contents may be overwritten. Check paths before copying." },
+        { name: "mv", category: "Files", summary: "Move or rename files and directories.", syntax: "mv source destination", example: "$ mv draft.txt final.txt", explanation: "Moves a file to a new location. Moving it within the same directory effectively renames it.", note: "An existing destination may be overwritten." },
+        { name: "rm", category: "Files", summary: "Remove files or directories.", syntax: "rm [options] file", example: "$ rm old-notes.txt", explanation: "Deletes files. Use -r to remove a directory and its contents.", note: "Deleted items usually do not go to a trash folder. Double-check the path; avoid running unfamiliar recursive or force options.", warning: true },
+        { name: "file", category: "Files", summary: "Identify a file's type.", syntax: "file path", example: "$ file archive.tar.gz", explanation: "Examines a file and reports its likely type based on its contents, rather than relying only on its name.", note: "Useful when a file has no extension or a misleading one." },
+        { name: "find", category: "Search", summary: "Find files and directories by criteria.", syntax: "find path [conditions]", example: "$ find ~/Documents -name '*.pdf'", explanation: "Searches a directory tree. You can filter by name, type, size, modification time, and other criteria.", note: "Quote patterns such as '*.pdf' so the shell passes them to find." },
+        { name: "grep", category: "Search", summary: "Find matching text in files or input.", syntax: "grep [options] pattern [file...]", example: "$ grep -in 'error' app.log", explanation: "Prints lines matching a text pattern. It is often combined with other commands using a pipe.", note: "-i ignores letter case and -n shows line numbers." },
+        { name: "which", category: "Search", summary: "Show which executable will run.", syntax: "which command", example: "$ which python3", explanation: "Looks up a command in your PATH and prints the executable's location.", note: "For shell built-ins, type -a can provide more useful results." },
+        { name: "whereis", category: "Search", summary: "Locate a command's binary, source, and manual.", syntax: "whereis command", example: "$ whereis ssh", explanation: "Searches standard locations for a program and related files such as its manual page.", note: "It searches a limited set of locations, not every directory on your system." },
+        { name: "cat", category: "Text", summary: "Print or combine file contents.", syntax: "cat [file...]", example: "$ cat README.md", explanation: "Writes file contents to the terminal. It can also concatenate multiple files.", note: "For long files, less is usually easier to read." },
+        { name: "less", category: "Text", summary: "Read a file one screen at a time.", syntax: "less file", example: "$ less /var/log/syslog", explanation: "Opens a scrollable viewer without loading the entire file into the terminal at once.", note: "Press q to quit, / to search, and n to jump to the next match." },
+        { name: "head", category: "Text", summary: "Show the beginning of a file.", syntax: "head [options] file", example: "$ head -n 20 access.log", explanation: "Prints the first lines of a file. By default, it shows 10 lines.", note: "Use -n to choose how many lines to show." },
+        { name: "tail", category: "Text", summary: "Show the end of a file or follow updates.", syntax: "tail [options] file", example: "$ tail -f app.log", explanation: "Prints the last lines of a file. With -f, it keeps watching for newly added lines.", note: "Press Ctrl+C to stop following a file." },
+        { name: "wc", category: "Text", summary: "Count lines, words, or bytes.", syntax: "wc [options] [file...]", example: "$ wc -l access.log", explanation: "Counts lines, words, and bytes in input or files.", note: "-l counts lines, -w words, and -c bytes." },
+        { name: "sort", category: "Text", summary: "Sort lines of text.", syntax: "sort [options] [file...]", example: "$ sort names.txt", explanation: "Reads lines and prints them in sorted order. Use -n for numeric sorting or -r to reverse the order.", note: "By default, sorting follows the current locale." },
+        { name: "uniq", category: "Text", summary: "Filter adjacent repeated lines.", syntax: "uniq [options] [input [output]]", example: "$ sort names.txt | uniq -c", explanation: "Collapses repeated neighboring lines. Sorting first groups matching lines together.", note: "-c prefixes each unique line with its count." },
+        { name: "cut", category: "Text", summary: "Extract columns or character ranges.", syntax: "cut [options] [file...]", example: "$ cut -d: -f1 /etc/passwd", explanation: "Selects fields separated by a delimiter or extracts characters from each input line.", note: "-d sets a delimiter and -f selects field numbers." },
+        { name: "sed", category: "Text", summary: "Transform text in a stream.", syntax: "sed [options] 'expression' file", example: "$ sed 's/draft/final/g' notes.txt", explanation: "Applies text-editing expressions to each input line and prints the result.", note: "This example prints transformed text; it does not edit the file in place." },
+        { name: "awk", category: "Text", summary: "Process text using fields and patterns.", syntax: "awk 'program' [file...]", example: "$ awk '{print $1}' names.txt", explanation: "Reads input line by line and can select, transform, or summarize fields of text.", note: "$1 refers to the first field; the default field separator is whitespace." },
+        { name: "echo", category: "Text", summary: "Print text or variable values.", syntax: "echo [text...]", example: "$ echo \"Hello, Linux\"", explanation: "Writes text to standard output. It is also commonly used to inspect shell variables.", note: "Use printf when you need precise formatting." },
+        { name: "man", category: "Help", summary: "Read a command's manual page.", syntax: "man command", example: "$ man find", explanation: "Opens the installed manual for a command, including its options and behavior.", note: "Press q to leave the manual; search within it with /." },
+        { name: "help", category: "Help", summary: "Get help for a shell built-in.", syntax: "help [command]", example: "$ help cd", explanation: "Shows usage information for commands provided by your shell, such as cd and export.", note: "For external programs, try command --help or man command." },
+        { name: "history", category: "Help", summary: "Review commands entered in the shell.", syntax: "history [count]", example: "$ history 15", explanation: "Prints recent commands from the shell's history list.", note: "History may contain sensitive text. Be careful before sharing its output." },
+        { name: "clear", category: "Help", summary: "Clear the terminal display.", syntax: "clear", example: "$ clear", explanation: "Moves the visible terminal contents out of view to give you a clean screen.", note: "It does not delete your shell history." },
+        { name: "ps", category: "System", summary: "List running processes.", syntax: "ps [options]", example: "$ ps aux", explanation: "Shows information about processes, including their IDs, owners, and resource usage.", note: "Use ps aux for a broad snapshot of processes on many Linux systems." },
+        { name: "top", category: "System", summary: "Monitor processes and system activity.", syntax: "top", example: "$ top", explanation: "Displays a live, updating view of processes and CPU and memory use.", note: "Press q to quit. The h key displays help in many versions." },
+        { name: "free", category: "System", summary: "Show memory usage.", syntax: "free [options]", example: "$ free -h", explanation: "Reports physical memory and swap usage.", note: "-h displays values in human-readable units." },
+        { name: "df", category: "System", summary: "Check filesystem space.", syntax: "df [options] [path]", example: "$ df -h /", explanation: "Shows available and used disk space for mounted filesystems.", note: "-h uses readable units; the optional path selects a filesystem." },
+        { name: "du", category: "System", summary: "Estimate file and directory sizes.", syntax: "du [options] [path]", example: "$ du -sh ~/Downloads", explanation: "Estimates how much disk space files and directories use.", note: "-s summarizes a path and -h uses human-readable units." },
+        { name: "uname", category: "System", summary: "Show system and kernel information.", syntax: "uname [options]", example: "$ uname -a", explanation: "Prints information about the running kernel and operating system.", note: "uname -a requests all information available on your system." },
+        { name: "uptime", category: "System", summary: "Show how long the system has been running.", syntax: "uptime", example: "$ uptime", explanation: "Displays the current time, system uptime, logged-in users, and load averages.", note: "Load averages describe system demand over recent intervals." },
+        { name: "whoami", category: "System", summary: "Print your current username.", syntax: "whoami", example: "$ whoami", explanation: "Shows the effective username associated with your current session.", note: "After using sudo, this may report a different effective user." },
+        { name: "id", category: "System", summary: "Show user and group IDs.", syntax: "id [user]", example: "$ id", explanation: "Prints a user's numeric ID and group memberships.", note: "Pass a username to inspect another account's IDs." },
+        { name: "ping", category: "Network", summary: "Test whether a host responds over a network.", syntax: "ping [options] host", example: "$ ping -c 4 example.com", explanation: "Sends network echo requests and reports replies and round-trip times.", note: "Some networks block ping. -c limits how many requests are sent." },
+        { name: "ip", category: "Network", summary: "Inspect or manage network interfaces and routes.", syntax: "ip [object] [command]", example: "$ ip addr show", explanation: "A modern utility for viewing network addresses, interfaces, routes, and related settings.", note: "This example only displays interface addresses." },
+        { name: "curl", category: "Network", summary: "Transfer data to or from a URL.", syntax: "curl [options] URL", example: "$ curl -I https://example.com", explanation: "Makes requests to URLs and can display or transfer their responses.", note: "-I requests response headers only. Be cautious with commands that pipe downloaded content into a shell." },
+        { name: "wget", category: "Network", summary: "Download content from a URL.", syntax: "wget [options] URL", example: "$ wget -O page.html https://example.com", explanation: "Downloads files over supported network protocols, usually saving them to disk.", note: "Check the source of downloaded files before opening or running them." },
+        { name: "ssh", category: "Network", summary: "Connect securely to a remote computer.", syntax: "ssh [user@]host", example: "$ ssh sam@example.com", explanation: "Starts an encrypted remote shell session, typically using the SSH protocol.", note: "Only connect to hosts you trust, and verify unfamiliar host-key prompts." },
+        { name: "chmod", category: "Permissions", summary: "Change file permission bits.", syntax: "chmod [options] mode file", example: "$ chmod u+x script.sh", explanation: "Changes who can read, write, or execute a file. This example adds execute permission for the owner.", note: "Avoid broad permissions such as 777; grant only the access that is needed.", warning: true },
+        { name: "chown", category: "Permissions", summary: "Change file owner or group.", syntax: "chown [options] owner[:group] file", example: "$ chown sam:developers report.txt", explanation: "Changes the owner and optionally the group associated with a file or directory.", note: "Changing ownership often requires elevated privileges. Check the target path first.", warning: true },
+        { name: "sudo", category: "Permissions", summary: "Run a command with elevated privileges.", syntax: "sudo command", example: "$ sudo apt update", explanation: "Runs a command with another user's privileges, usually the system administrator's.", note: "Only elevate commands you understand. Administrative commands can change or damage the whole system.", warning: true },
+        { name: "tar", category: "Archives", summary: "Create or extract tar archives.", syntax: "tar [options] archive [files...]", example: "$ tar -czf backup.tar.gz Documents/", explanation: "Bundles files into a tar archive and can optionally compress or extract them.", note: "Common flags: -c create, -x extract, -t list, -f archive file, -z gzip." },
+        { name: "gzip", category: "Archives", summary: "Compress or decompress files with gzip.", syntax: "gzip [options] file", example: "$ gzip access.log", explanation: "Compresses files into .gz format. By default, it replaces the original with a compressed file.", note: "Use gzip -k to keep the original file." },
+        { name: "zip", category: "Archives", summary: "Create or inspect ZIP archives.", syntax: "zip [options] archive.zip files...", example: "$ zip -r photos.zip Photos/", explanation: "Creates ZIP archives, which are widely supported across operating systems.", note: "-r includes directory contents recursively." },
+        { name: "apt", category: "Packages", summary: "Manage software packages on Debian-based systems.", syntax: "apt [command] [package]", example: "$ apt search editor", explanation: "Searches, installs, updates, or removes software using configured package repositories on Debian and Ubuntu systems.", note: "Installing or removing packages changes your system; review the requested changes and use sudo only when appropriate." },
+        { name: "systemctl", category: "System", summary: "Inspect and manage systemd services.", syntax: "systemctl [command] [unit]", example: "$ systemctl status nginx", explanation: "Queries or controls services and other units managed by systemd.", note: "This example checks status. Starting, stopping, or enabling services changes system state." },
+        { name: "journalctl", category: "System", summary: "Read systemd journal logs.", syntax: "journalctl [options]", example: "$ journalctl -u nginx --since today", explanation: "Displays logs collected by systemd, with filters for units, time ranges, and more.", note: "-f follows new log entries; -u filters by service." },
+        { name: "date", category: "System", summary: "Display or format the current date and time.", syntax: "date [options] [+format]", example: "$ date '+%Y-%m-%d %H:%M:%S'", explanation: "Prints the system date and time, optionally using a custom output format.", note: "Setting the system clock requires elevated privileges." },
+        { name: "env", category: "System", summary: "Display or set environment variables for a command.", syntax: "env [VAR=value] [command]", example: "$ env", explanation: "Prints the current environment or runs a command with selected environment variables set.", note: "Environment values can contain secrets; avoid sharing them publicly." },
+        { name: "export", category: "System", summary: "Set an environment variable for child processes.", syntax: "export NAME=value", example: "$ export EDITOR=nano", explanation: "Marks a shell variable to be passed to programs started from that shell.", note: "This setting usually lasts only for the current shell session." },
+        { name: "tar -xf", category: "Archives", summary: "Extract files from a tar archive.", syntax: "tar -xf archive.tar", example: "$ tar -xf backup.tar -C ./restore", explanation: "Unpacks a tar archive into the current directory or a location selected with -C.", note: "Inspect an unfamiliar archive before extracting; its paths may overwrite files." }
+      ];
+
+      const categories = ["All", ...new Set(commands.map(({ category }) => category))];
+      let activeCategory = "All";
+      let selectedName = "ls";
+      let query = "";
+
+      const filterContainer = document.getElementById("filters");
+      const grid = document.getElementById("command-grid");
+      const detail = document.getElementById("detail");
+      const search = document.getElementById("search");
+      const resultCount = document.getElementById("result-count");
+
+      function renderFilters() {
+        filterContainer.innerHTML = categories.map((category) =>
+          `<button class="filter" type="button" aria-pressed="${category === activeCategory}" data-category="${category}">${category}</button>`
+        ).join("");
+      }
+
+      function visibleCommands() {
+        const normalized = query.trim().toLowerCase();
+        return commands.filter((command) => {
+          const matchesCategory = activeCategory === "All" || command.category === activeCategory;
+          const searchable = [command.name, command.category, command.summary, command.syntax, command.explanation, command.example, command.note].join(" ").toLowerCase();
+          return matchesCategory && (!normalized || searchable.includes(normalized));
+        });
+      }
+
+      function renderGrid(results) {
+        resultCount.textContent = `${results.length} ${results.length === 1 ? "command" : "commands"}`;
+        if (!results.length) {
+          grid.innerHTML = '<div class="empty-state"><strong>No commands found</strong>Try a different search or choose another category.</div>';
+          return;
+        }
+        grid.innerHTML = results.map((command) => `
+          <button class="command-card" type="button" data-command="${command.name}" aria-pressed="${command.name === selectedName}">
+            <span class="card-top"><span class="command-name">${command.name}</span><span class="category-label">${command.category}</span></span>
+            <span class="card-description">${command.summary}</span>
+          </button>
+        `).join("");
+      }
+
+      function renderDetail(command) {
+        if (!command) {
+          detail.innerHTML = '<div class="detail-head"><p class="detail-kicker">Command details</p><h2>No selection</h2><p class="detail-description">Choose a command from the list to see its explanation.</p></div>';
+          return;
+        }
+        detail.innerHTML = `
+          <div class="detail-head">
+            <p class="detail-kicker">${command.category}${command.warning ? " · Use with care" : ""}</p>
+            <div class="detail-title-row"><h2>${command.name}</h2><button class="copy-button" type="button" data-copy="${command.syntax}">Copy syntax</button></div>
+            <p class="detail-description">${command.explanation}</p>
+          </div>
+          <div class="detail-body">
+            <section class="detail-section"><h3>Syntax</h3><pre class="syntax">${command.syntax}</pre></section>
+            <section class="detail-section"><h3>Example</h3><pre class="example-code">${command.example}</pre></section>
+            <section class="detail-section"><h3>${command.warning ? "Safety note" : "Good to know"}</h3><p class="detail-note${command.warning ? " warning" : ""}">${command.note}</p></section>
+          </div>
+        `;
+      }
+
+      function render() {
+        const results = visibleCommands();
+        renderFilters();
+        renderGrid(results);
+        const selected = results.find(({ name }) => name === selectedName) || results[0];
+        if (selected) selectedName = selected.name;
+        renderDetail(selected);
+      }
+
+      filterContainer.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-category]");
+        if (!button) return;
+        activeCategory = button.dataset.category;
+        render();
+      });
+
+      grid.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-command]");
+        if (!button) return;
+        selectedName = button.dataset.command;
+        render();
+      });
+
+      detail.addEventListener("click", async (event) => {
+        const button = event.target.closest("[data-copy]");
+        if (!button) return;
+        try {
+          await navigator.clipboard.writeText(button.dataset.copy);
+          button.textContent = "Copied!";
+          setTimeout(() => { if (button.isConnected) button.textContent = "Copy syntax"; }, 1400);
+        } catch (error) {
+          button.textContent = "Copy unavailable";
+          button.title = "Clipboard access is unavailable in this browser context.";
+        }
+      });
+
+      search.addEventListener("input", () => {
+        query = search.value;
+        render();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "/" && document.activeElement !== search && !event.ctrlKey && !event.metaKey && !event.altKey) {
+          event.preventDefault();
+          search.focus();
+        }
+        if (event.key === "Escape" && document.activeElement === search) {
+          search.value = "";
+          query = "";
+          render();
+          search.blur();
+        }
+      });
+
+      render();
+    </script>
+  </body>
+</html>

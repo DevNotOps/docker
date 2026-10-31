@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  start_apache:
+    image: httpd
+    container_name: apache_server
+    restart: always
+    ports:
+      - '8080:80'

@@ -1,5 +1,5 @@
 <?php
-$host = 'mysql-server'; // Service/Container name defined in docker-compose
+$host = 'mysql_server'; // Service/Container name defined in docker-compose
 $db   = 'mydb';
 $user = 'root';
 $pass = 'password';
